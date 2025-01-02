@@ -4,7 +4,7 @@ use std::process::Command;
 #[allow(dead_code)]
 const MIN_LIBHEIF_VERSION: &str = "1.18";
 #[allow(dead_code)]
-const LIBHEIF_GITHUB_VERSION: &str = "v1.18.2";
+const LIBHEIF_GITHUB_VERSION: &str = "v1.19.5-static";
 
 fn main() {
     if std::env::var("DOCS_RS").is_ok() {
@@ -19,6 +19,12 @@ fn main() {
 
     #[cfg(not(target_os = "windows"))]
     {
+
+        #[cfg(feature = "compile-libheif")]
+        {
+            println!("cargo:rustc-link-lib=static=aom");
+            println!("cargo:rustc-link-lib=static=numa");
+        }
         #[cfg(feature = "compile-libheif")]
         compile_libheif();
 
@@ -80,7 +86,7 @@ fn fetch_libheif() -> PathBuf {
                 "1",
                 "--branch",
                 LIBHEIF_GITHUB_VERSION,
-                "https://github.com/strukturag/libheif.git",
+                "https://github.com/loyalpartner/libheif.git",
                 libheif_dir.to_str().unwrap(),
             ]),
         );
@@ -98,6 +104,9 @@ fn compile_libheif() {
     let mut build_config = cmake::Config::new(libheif_dir);
     build_config.out_dir(out_path.join("libheif_build"));
     build_config.define("BUILD_SHARED_LIBS", "OFF");
+    build_config.define("WITH_EXAMPLES", "OFF");
+    build_config.define("WITH_GDK_PIXBUF", "OFF");
+    build_config.define("BUILD_TESTING", "OFF");
 
     #[cfg(feature = "embedded-libheif-plugins")]
     for key in [
