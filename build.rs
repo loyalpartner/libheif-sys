@@ -19,6 +19,12 @@ fn main() {
 
     #[cfg(not(target_os = "windows"))]
     {
+
+        #[cfg(feature = "compile-libheif")]
+        {
+            println!("cargo:rustc-link-lib=static=aom");
+            println!("cargo:rustc-link-lib=static=numa");
+        }
         #[cfg(feature = "compile-libheif")]
         compile_libheif();
 
@@ -98,6 +104,9 @@ fn compile_libheif() {
     let mut build_config = cmake::Config::new(libheif_dir);
     build_config.out_dir(out_path.join("libheif_build"));
     build_config.define("BUILD_SHARED_LIBS", "OFF");
+    build_config.define("WITH_EXAMPLES", "OFF");
+    build_config.define("WITH_GDK_PIXBUF", "OFF");
+    build_config.define("BUILD_TESTING", "OFF");
 
     #[cfg(feature = "embedded-libheif-plugins")]
     for key in [
